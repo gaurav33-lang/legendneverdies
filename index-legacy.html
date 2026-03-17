@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGACY MUSEUM • Heroes &amp; Martyrs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=EB+Garamond:ital,wght@family=EB+Garamond:wght@400;600&amp;display=swap');
+        :root {
+            --blood: #8b0000;
+            --darkblood: #b22222;
+        }
+        body {
+            font-family: 'EB Garamond', serif;
+        }
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
+        .grain {
+            background-image: 
+                linear-gradient(rgba(139,0,0,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139,0,0,0.08) 1px, transparent 1px);
+            background-size: 4px 4px;
+        }
+        .card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            transform: scale(1.06) rotate(1deg);
+            box-shadow: 0 0 30px #b22222;
+        }
+        .modal {
+            animation: modalPop 0.4s ease forwards;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.8) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .vintage {
+            filter: sepia(40%) contrast(115%) brightness(90%);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #b22222;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        .speaker-btn {
+            transition: all 0.2s ease;
+        }
+        .speaker-btn:hover {
+            color: #fff;
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="bg-[#0f0a06] text-[#d2b48c] grain overflow-x-hidden">
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1a120b]/95 backdrop-blur-md border-b-2 border-[#8b0000]">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-skull-crossbones text-4xl text-[#b22222]"></i>
+                <div>
+                    <span class="title-font text-4xl tracking-[4px] text-[#b22222]">LEGACY</span>
+                    <span class="title-font text-4xl tracking-widest text-white">MUSEUM</span>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-10 text-lg font-medium">
+                <a href="#home" onclick="document.getElementById('home').scrollIntoView({behavior:'smooth'})" class="nav-link text-[#d2b48c] hover:text-[#b22222]">HOME</a>
+                <a href="#gallery" onclick="document.getElementById('gallery').scrollIntoView({behavior:'smooth'})" class="nav-link text-[#d2b48c] hover:text-[#b22222]">GALLERY</a>
+                <a href="#about" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" class="nav-link text-[#d2b48c] hover:text-[#b22222]">ABOUT US</a>
+                <a href="#vision" onclick="document.getElementById('vision').scrollIntoView({behavior:'smooth'})" class="nav-link text-[#d2b48c] hover:text-[#b22222]">OUR VISION</a>
+                <a href="#contact" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" class="nav-link text-[#d2b48c] hover:text-[#b22222]">CONTACT</a>
+            </div>
+            <div class="flex items-center gap-6">
+                <button id="music-toggle" onclick="toggleMusic()" class="text-3xl text-[#b22222] hover:text-white transition">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button onclick="speakWelcome()" class="bg-[#8b0000] hover:bg-[#b22222] px-6 py-2 text-sm font-bold border border-[#d2b48c] transition">SPEAK THE TRUTH</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="min-h-screen flex items-center justify-center relative">
+        <div class="absolute inset-0 bg-[radial-gradient(#8b0000_0.8px,transparent_1px)] bg-[length:30px_30px] opacity-30"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#0f0a06]/70 to-[#0f0a06]"></div>
+        <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+            <div class="mb-6 flex justify-center">
+                <div class="inline-flex items-center gap-3 bg-[#1a120b] border-2 border-[#b22222] px-8 py-3 text-[#b22222] title-font text-2xl tracking-widest">
+                    <i class="fas fa-tombstone"></i>
+                    HEROES &amp; MARTYRS
+                </div>
+            </div>
+            <h1 class="title-font text-[92px] md:text-[120px] leading-none text-[#b22222] tracking-[-4px] mb-4">THE UNCOVERED<br>TRUTH</h1>
+            <p class="max-w-xl mx-auto text-2xl text-[#d2b48c]/90 mb-12">A bloody 80s digital tomb honoring 100 legends who bled for freedom</p>
+            <button onclick="speakWelcome()" 
+                    class="group relative inline-flex items-center gap-4 bg-[#8b0000] hover:bg-[#b22222] text-white text-2xl font-bold px-16 py-7 border-4 border-[#d2b48c] transition-all hover:scale-105">
+                ENTER THE TOMB
+                <i class="fas fa-arrow-right group-active:rotate-45 transition"></i>
+            </button>
+        </div>
+        <div class="absolute bottom-12 left-1/2 flex flex-col items-center text-[#b22222] animate-bounce">
+            <i class="fas fa-chevron-down text-5xl"></i>
+            <span class="text-xs tracking-widest mt-2">SCROLL FOR THE FALLEN</span>
+        </div>
+    </section>
+
+    <!-- GALLERY SECTION -->
+    <section id="gallery" class="py-24 bg-[#1a120b]">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <span class="text-[#8b0000] text-sm tracking-[6px]">1980s DIGITAL ARCHIVE</span>
+                    <h2 class="title-font text-6xl text-white">GALLERY OF BLOOD &amp; HONOR</h2>
+                </div>
+                <div class="text-right">
+                    <div id="country-tabs" class="flex flex-wrap gap-2 justify-end"></div>
+                </div>
+            </div>
+
+            <div id="heroes-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8"></div>
+        </div>
+    </section>
+
+    <!-- ABOUT US -->
+    <section id="about" class="py-24 px-6 bg-[#0f0a06]">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="title-font text-6xl mb-8 text-[#b22222]">ABOUT US</h2>
+            <div class="prose prose-invert max-w-none text-xl leading-relaxed">
+                <p>This digital museum was created by me, Gaurav Kunwar — a young student from Butwal, Nepal learning about cyber security and deeply interested in farming. I wanted to honor our great heroes and martyrs who sacrificed everything for freedom, unity, and justice. Their stories deserve to be remembered forever.</p>
+            </div>
+            <div class="mt-12 flex justify-center">
+                <div class="w-40 h-px bg-gradient-to-r from-transparent via-[#b22222] to-transparent"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISION -->
+    <section id="vision" class="py-24 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="title-font text-6xl mb-8 text-[#b22222]">OUR VISION</h2>
+            <div class="text-2xl leading-tight max-w-3xl mx-auto">
+                To keep the eternal flame of sacrifice burning in the hearts of every generation.<br>
+                To ensure no hero is forgotten, no martyr silenced.<br>
+                To remind the world that freedom is written in blood and preserved in memory.
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="py-24 bg-[#1a120b]">
+        <div class="max-w-2xl mx-auto px-6">
+            <h2 class="title-font text-6xl text-center mb-16 text-[#b22222]">SEND A MESSAGE FROM THE TOMB</h2>
+            <form id="contact-form" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <input id="name" type="text" placeholder="YOUR NAME" 
+                           class="bg-[#0f0a06] border-2 border-[#8b0000] focus:border-[#b22222] px-8 py-6 text-xl outline-none">
+                    <input id="email" type="email" placeholder="YOUR EMAIL" 
+                           class="bg-[#0f0a06] border-2 border-[#8b0000] focus:border-[#b22222] px-8 py-6 text-xl outline-none">
+                </div>
+                <textarea id="message" rows="6" placeholder="YOUR THOUGHTS OR SUGGESTIONS FOR NEW HEROES/COUNTRIES..." 
+                          class="w-full bg-[#0f0a06] border-2 border-[#8b0000] focus:border-[#b22222] px-8 py-6 text-xl outline-none"></textarea>
+                <button type="submit" 
+                        class="w-full bg-[#b22222] hover:bg-[#8b0000] py-8 text-2xl font-bold transition">SEND TO THE ARCHIVE</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#0f0a06] py-12 border-t-4 border-[#8b0000]">
+        <div class="max-w-7xl mx-auto px-6 text-center text-sm tracking-widest">
+            MADE WITH RESPECT IN BUTWAL, NEPAL • COPYRIGHT RESERVED 2026 © GAURAV KUNWAR
+        </div>
+    </footer>
+
+    <!-- HERO MODAL -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4">
+        <div class="modal bg-[#1a120b] max-w-3xl w-full border-4 border-[#b22222] relative overflow-hidden">
+            <!-- modal header -->
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#8b0000] via-[#b22222] to-[#8b0000]"></div>
+            
+            <button onclick="closeModal()" 
+                    class="absolute top-6 right-6 text-5xl text-[#b22222] hover:text-white z-10">×</button>
+            
+            <div class="p-10">
+                <img id="modal-img" class="w-full h-96 object-cover vintage border-2 border-[#8b0000] mb-8" alt="">
+                
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 id="modal-name" class="title-font text-5xl text-white"></h3>
+                        <p id="modal-country" class="text-[#8b0000] text-2xl mt-1"></p>
+                    </div>
+                    <button onclick="readModalDesc()" 
+                            class="speaker-btn flex items-center gap-3 bg-[#0f0a06] border border-[#b22222] px-6 py-3 text-[#b22222] hover:bg-[#b22222] hover:text-white">
+                        <i class="fas fa-volume-up text-3xl"></i>
+                        <span class="font-bold text-lg">READ ALOUD</span>
+                    </button>
+                </div>
+                
+                <div id="modal-desc" class="text-lg leading-relaxed text-[#d2b48c] mb-10"></div>
+                
+                <div class="border-l-4 border-[#b22222] pl-6 italic text-[#d2b48c]/80" id="modal-quote"></div>
+            </div>
+            
+            <div class="bg-[#0f0a06] py-5 px-10 flex justify-between text-xs tracking-widest border-t border-[#8b0000]">
+                <div>LEGACY MUSEUM ARCHIVE • 1984</div>
+                <div onclick="closeModal()" class="cursor-pointer hover:text-[#b22222]">CLOSE TOMB</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO -->
+    <audio id="tomb-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Tailwind ready
+        function initTailwind() {
+            // Already loaded via CDN
+        }
+
+        // HEROES DATA - 100 FULL ENTRIES
+        const heroesData = {
+            "Nepal": [
+                {
+                    name: "Prithvi Narayan Shah",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Prithvi+Narayan+Shah&font=playfair",
+                    desc: "Born in 1723 in Gorkha Kingdom, Prithvi Narayan Shah was the visionary king who unified Nepal. Through brilliant military campaigns and wise diplomacy he forged a single nation from dozens of warring principalities. His Dibya Upadesh remains the sacred constitution of Nepali unity. He sacrificed his health and personal life for the dream of independence. He died in 1775 at the age of 52, yet his spirit guards Nepal's sovereignty to this day. Famous quote: 'Nepal is a garden of four varnas and thirty-six jats.'",
+                    quote: "Nepal is a garden of four varnas and thirty-six jats."
+                },
+                {
+                    name: "Bhanubhakta Acharya",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Bhanubhakta+Acharya&font=playfair",
+                    desc: "Born in 1814 in Tanahun, Bhanubhakta Acharya is revered as Nepal's national poet. He single-handedly translated the epic Ramayana into Nepali language so every citizen could read it. Imprisoned by the Rana regime for his literary rebellion, he never stopped writing. His verses ignited the flame of cultural identity and resistance. He died in 1868 after years of hardship. His poetry still echoes in every Nepali heart.",
+                    quote: "The language of the people is the voice of the gods."
+                },
+                {
+                    name: "Lakhan Thapa Magar",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Lakhan+Thapa&font=playfair",
+                    desc: "Born in 1835, Lakhan Thapa Magar became the first recorded martyr of Nepal. In 1857 he led an armed uprising against the tyrannical Rana rulers. Captured and executed publicly, his death sparked the long struggle for democracy. His courage inspired generations of freedom fighters. He gave his life so future Nepalis could live free. His name is synonymous with the first blood spilled for justice.",
+                    quote: "Better to die fighting than live in chains."
+                },
+                {
+                    name: "Balbhadra Kunwar",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Balbhadra+Kunwar&font=playfair",
+                    desc: "Born in 1789, Captain Balbhadra Kunwar defended Nalapani fort against British forces in 1814 with just 600 men. For months they held the fort under siege until only a handful survived. When the British offered surrender he replied with cannon fire. His bravery forced the British to respect Nepali valor. He died in 1823 after continued service. The British themselves erected a monument to his courage.",
+                    quote: "I will fight until the last drop of blood."
+                },
+                {
+                    name: "Bhimsen Thapa",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Bhimsen+Thapa&font=playfair",
+                    desc: "Born in 1775, Bhimsen Thapa served as Prime Minister and modernized Nepal's army and administration. He resisted British interference and built roads, bridges and forts. Imprisoned and tortured by rivals after the Anglo-Nepalese war, he took his own life in 1839 rather than submit. His reforms laid the foundation for a strong Nepal. His sacrifice prevented total colonial domination.",
+                    quote: "I would rather die than see Nepal enslaved."
+                },
+                {
+                    name: "Amar Singh Thapa",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Amar+Singh+Thapa&font=playfair",
+                    desc: "Born in 1768, General Amar Singh Thapa was the hero of the Anglo-Nepalese War. He led forces across the Himalayas and defeated British troops repeatedly. Known as the 'Living Lion of Nepal', he never surrendered. He died in 1846 after decades of service. His military genius preserved Nepal's independence. His statue stands as eternal guardian of the nation.",
+                    quote: "The mountains are our fortress."
+                },
+                {
+                    name: "Shukraraj Shastri",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Shukraraj+Shastri&font=playfair",
+                    desc: "Born in 1894, Shukraraj Shastri was one of the four great martyrs of Nepal. He demanded democracy and education for all. Arrested and hanged by the Rana regime in 1941, his final words were 'Long live Nepal'. His execution ignited the revolution that ended Rana rule. He sacrificed everything for the right to speak freely. His blood wrote the first chapter of modern Nepal.",
+                    quote: "Freedom is worth more than life itself."
+                },
+                {
+                    name: "Dharma Bhakta Mathema",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Dharma+Bhakta&font=playfair",
+                    desc: "Born in 1907, Dharma Bhakta Mathema fought the Rana dictatorship with fearless courage. He was arrested, tortured and publicly executed in 1941. His martyrdom became a rallying cry for the 1951 revolution. He gave his life so Nepali children could study in freedom. His name is carved in the heart of every democrat. He is remembered as one of the immortal four martyrs.",
+                    quote: "I die so that my country may live."
+                },
+                {
+                    name: "Ganga Lal Shrestha",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Ganga+Lal+Shrestha&font=playfair",
+                    desc: "Born in 1910, Ganga Lal Shrestha was a fearless revolutionary who printed illegal pamphlets against Rana tyranny. Captured and hanged in 1941 alongside his comrades, his death shook the nation. He believed in education and equality for all castes. His sacrifice paved the way for the end of feudal rule. He is one of Nepal's four immortal martyrs.",
+                    quote: "The pen is mightier than the sword."
+                },
+                {
+                    name: "Dashrath Chand",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Dashrath+Chand&font=playfair",
+                    desc: "Born in 1903, Dashrath Chand was a brilliant organizer of the anti-Rana movement. He was hanged in 1941 for demanding democracy. His final letter to the nation urged unity and courage. He died so future generations could vote freely. He is the fourth of Nepal's immortal martyrs. His blood sealed the promise of a democratic Nepal.",
+                    quote: "Democracy or death."
+                }
+            ],
+            "India": [
+                {
+                    name: "Mahatma Gandhi",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Mahatma+Gandhi&font=playfair",
+                    desc: "Born in 1869 in Porbandar, Mahatma Gandhi led India to freedom through non-violence. He organized the Salt March and Quit India movement. He fasted for communal harmony and fought untouchability. Assassinated in 1948 by a fanatic, his death shook the world. His philosophy of Satyagraha changed humanity forever. 'An eye for an eye makes the whole world blind.'",
+                    quote: "An eye for an eye makes the whole world blind."
+                },
+                {
+                    name: "Bhagat Singh",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Bhagat+Singh&font=playfair",
+                    desc: "Born in 1907, Bhagat Singh became the symbol of revolutionary courage. He bombed the Central Assembly and assassinated a British officer. He embraced the gallows at age 23 with the words 'Inquilab Zindabad'. His sacrifice inspired millions to join the freedom struggle. He died singing revolutionary songs. His blood still burns in every Indian heart.",
+                    quote: "Inquilab Zindabad!"
+                },
+                {
+                    name: "Subhas Chandra Bose",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Subhas+Chandra+Bose&font=playfair",
+                    desc: "Born in 1897, Netaji Subhas Chandra Bose formed the Indian National Army to fight the British. He raised the slogan 'Give me blood and I will give you freedom'. He disappeared in 1945 after a plane crash. His courage forced the British to realize they could no longer hold India. His Azad Hind government remains a symbol of defiance.",
+                    quote: "Give me blood and I will give you freedom."
+                },
+                {
+                    name: "Rani Lakshmibai",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Rani+Lakshmibai&font=playfair",
+                    desc: "Born in 1828, Rani Lakshmibai of Jhansi led her troops against the British in 1857. She fought on horseback with her infant son strapped to her back. She died fighting in the battlefield at Gwalior. Her bravery became legend across India. She is the eternal symbol of women's power in the freedom struggle.",
+                    quote: "I will never surrender my Jhansi."
+                },
+                {
+                    name: "Sardar Vallabhbhai Patel",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Sardar+Patel&font=playfair",
+                    desc: "Born in 1875, Sardar Patel unified 565 princely states into one India. Known as the Iron Man, he used diplomacy and firmness. He died in 1950 after building modern India. Without his vision India would have remained fragmented. His statue in Gujarat stands as the tallest in the world.",
+                    quote: "Unity is our strength."
+                },
+                {
+                    name: "Chandrashekhar Azad",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Chandrashekhar+Azad&font=playfair",
+                    desc: "Born in 1906, Chandrashekhar Azad vowed never to be captured alive. He led the Hindustan Socialist Republican Association. He shot himself in Allahabad garden in 1931 when surrounded by police. His final words were 'Azad is free'. His sacrifice inspired the armed revolution.",
+                    quote: "I am Azad and will remain Azad."
+                },
+                {
+                    name: "Khudiram Bose",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Khudiram+Bose&font=playfair",
+                    desc: "Born in 1889, Khudiram Bose was the youngest revolutionary hanged by the British at age 18. He threw bombs at a British magistrate's carriage. He smiled on the gallows and said 'Mother, I am coming'. His martyrdom ignited the fire of revolution across Bengal.",
+                    quote: "I die for my motherland."
+                },
+                {
+                    name: "Mangal Pandey",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Mangal+Pandey&font=playfair",
+                    desc: "Born in 1827, Mangal Pandey sparked the 1857 Revolt by attacking British officers. He was hanged on April 8, 1857. His act became the first shot of the Indian Rebellion. He is remembered as the first martyr of the freedom movement.",
+                    quote: "The time has come to rise."
+                },
+                {
+                    name: "Dr. B.R. Ambedkar",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Dr.+Ambedkar&font=playfair",
+                    desc: "Born in 1891, Dr. B.R. Ambedkar wrote the Constitution of India and fought for Dalit rights. He converted to Buddhism with millions of followers. He died in 1956 after a lifetime of struggle. His vision gave every Indian equal rights under law.",
+                    quote: "Educate, agitate, organize."
+                },
+                {
+                    name: "Jawaharlal Nehru",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Jawaharlal+Nehru&font=playfair",
+                    desc: "Born in 1889, Jawaharlal Nehru became India's first Prime Minister. He raised the flag of independence on 15 August 1947. He built modern institutions and championed secularism. He died in 1964 after shaping a new nation. His Tryst with Destiny speech still inspires.",
+                    quote: "At the stroke of the midnight hour..."
+                }
+            ],
+            "USA": [
+                {
+                    name: "George Washington",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+George+Washington&font=playfair",
+                    desc: "Born in 1732, George Washington led the Continental Army to victory in the Revolutionary War. He became the first President of the United States. He refused to become king and set the example of peaceful transfer of power. He died in 1799. His leadership gave birth to American democracy.",
+                    quote: "Liberty is the foundation."
+                },
+                {
+                    name: "Abraham Lincoln",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Abraham+Lincoln&font=playfair",
+                    desc: "Born in 1809, Abraham Lincoln preserved the Union during the Civil War and issued the Emancipation Proclamation. He was assassinated in 1865 while fighting for the end of slavery. His Gettysburg Address redefined freedom. He died so that a nation conceived in liberty could live.",
+                    quote: "Government of the people, by the people."
+                },
+                {
+                    name: "Martin Luther King Jr.",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Martin+Luther+King&font=playfair",
+                    desc: "Born in 1929, Dr. Martin Luther King Jr. led the Civil Rights Movement with non-violent protest. His 'I Have a Dream' speech changed America forever. He was assassinated in 1968. His sacrifice ended legal segregation and inspired global justice movements.",
+                    quote: "I have a dream."
+                },
+                {
+                    name: "Harriet Tubman",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Harriet+Tubman&font=playfair",
+                    desc: "Born into slavery in 1822, Harriet Tubman escaped and then returned 19 times to free over 300 slaves via the Underground Railroad. She served as a Union spy during the Civil War. She died in 1913. She never lost a single passenger on her freedom train.",
+                    quote: "I freed a thousand slaves."
+                },
+                {
+                    name: "Rosa Parks",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Rosa+Parks&font=playfair",
+                    desc: "Born in 1913, Rosa Parks refused to give up her bus seat in Montgomery in 1955. Her arrest sparked the Montgomery Bus Boycott. She became the mother of the Civil Rights Movement. She died in 2005. One woman's courage changed the course of history.",
+                    quote: "I was tired of giving in."
+                },
+                {
+                    name: "Frederick Douglass",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Frederick+Douglass&font=playfair",
+                    desc: "Born into slavery in 1818, Frederick Douglass escaped and became the greatest abolitionist orator. He advised President Lincoln and fought for women's suffrage. He died in 1895. His autobiography awakened the conscience of America.",
+                    quote: "Power concedes nothing without a demand."
+                },
+                {
+                    name: "Susan B. Anthony",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Susan+B.+Anthony&font=playfair",
+                    desc: "Born in 1820, Susan B. Anthony led the fight for women's right to vote. She was arrested for voting in 1872. She died in 1906, 14 years before the 19th Amendment. Her tireless work gave women the ballot.",
+                    quote: "Failure is impossible."
+                },
+                {
+                    name: "Thomas Jefferson",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Thomas+Jefferson&font=playfair",
+                    desc: "Born in 1743, Thomas Jefferson wrote the Declaration of Independence. He served as third President and doubled the size of the nation with the Louisiana Purchase. He died on July 4, 1826. His words 'all men are created equal' still define America.",
+                    quote: "All men are created equal."
+                },
+                {
+                    name: "Benjamin Franklin",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Benjamin+Franklin&font=playfair",
+                    desc: "Born in 1706, Benjamin Franklin was a founding father, inventor, and diplomat. He secured French support for the Revolution. He died in 1790. His wisdom helped draft both the Declaration and the Constitution.",
+                    quote: "We must all hang together or we will hang separately."
+                },
+                {
+                    name: "John F. Kennedy",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+John+F.+Kennedy&font=playfair",
+                    desc: "Born in 1917, President John F. Kennedy inspired a generation with his call to service. He faced the Cuban Missile Crisis and launched the space race. Assassinated in 1963, his vision of a New Frontier lives on.",
+                    quote: "Ask not what your country can do for you."
+                }
+            ],
+            "South Africa": [
+                {
+                    name: "Nelson Mandela",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Nelson+Mandela&font=playfair",
+                    desc: "Born in 1918, Nelson Mandela fought apartheid for 27 years in prison. He became South Africa's first black President in 1994. He reconciled a divided nation through truth and reconciliation. He died in 2013. His legacy is forgiveness and unity.",
+                    quote: "It always seems impossible until it's done."
+                },
+                {
+                    name: "Steve Biko",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Steve+Biko&font=playfair",
+                    desc: "Born in 1946, Steve Biko founded the Black Consciousness Movement. He was tortured and killed by police in 1977 at age 30. His death galvanized the anti-apartheid struggle worldwide. His words 'Black is beautiful' empowered millions.",
+                    quote: "The most potent weapon is the mind."
+                },
+                {
+                    name: "Chris Hani",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Chris+Hani&font=playfair",
+                    desc: "Born in 1942, Chris Hani was the beloved leader of the armed wing of the ANC. Assassinated in 1993, his death nearly plunged South Africa into civil war. His sacrifice ensured the peaceful transition to democracy.",
+                    quote: "I have lived and died for freedom."
+                },
+                {
+                    name: "Albert Luthuli",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Albert+Luthuli&font=playfair",
+                    desc: "Born in 1898, Chief Albert Luthuli was the first African Nobel Peace Prize winner. He led non-violent resistance against apartheid. He died in 1967 after decades of house arrest. His moral leadership inspired the world.",
+                    quote: "I am not a coward."
+                },
+                {
+                    name: "Oliver Tambo",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Oliver+Tambo&font=playfair",
+                    desc: "Born in 1917, Oliver Tambo led the ANC in exile for 30 years. He built international support against apartheid. He died in 1993 just before freedom. His strategic genius made victory possible.",
+                    quote: "We shall return."
+                },
+                {
+                    name: "Ruth First",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Ruth+First&font=playfair",
+                    desc: "Born in 1925, Ruth First was a fearless anti-apartheid journalist and activist. She was killed by a letter bomb in 1982 in Mozambique. Her writings exposed the horrors of apartheid to the world.",
+                    quote: "Truth is the first casualty of tyranny."
+                },
+                {
+                    name: "Desmond Tutu",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Desmond+Tutu&font=playfair",
+                    desc: "Born in 1931, Archbishop Desmond Tutu led the moral fight against apartheid and chaired the Truth and Reconciliation Commission. He died in 2021. His message of forgiveness healed a nation.",
+                    quote: "We are all God's children."
+                },
+                {
+                    name: "Winnie Mandela",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Winnie+Mandela&font=playfair",
+                    desc: "Born in 1936, Winnie Mandela kept the flame of resistance alive during Nelson's imprisonment. She endured torture and banishment. She died in 2018. Her courage inspired women across Africa.",
+                    quote: "I will not be silenced."
+                },
+                {
+                    name: "Joe Slovo",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Joe+Slovo&font=playfair",
+                    desc: "Born in 1926, Joe Slovo was a white South African who became chief of staff of the ANC's military wing. He helped negotiate the end of apartheid. He died in 1995. His sacrifice proved the struggle was not about race.",
+                    quote: "Freedom for all."
+                },
+                {
+                    name: "Helen Suzman",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Helen+Suzman&font=playfair",
+                    desc: "Born in 1917, Helen Suzman was the lone anti-apartheid voice in parliament for 13 years. She visited Nelson Mandela in prison. She died in 2009. Her courage showed that one voice can change history.",
+                    quote: "I cannot be silent."
+                }
+            ],
+            "France": [
+                {
+                    name: "Joan of Arc",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Joan+of+Arc&font=playfair",
+                    desc: "Born in 1412, Joan of Arc led French armies to victory against England at age 17. She was burned at the stake in 1431 at age 19. Her martyrdom inspired France to win the Hundred Years' War. She was declared a saint in 1920.",
+                    quote: "I am not afraid. I was born to do this."
+                },
+                {
+                    name: "Napoleon Bonaparte",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Napoleon+Bonaparte&font=playfair",
+                    desc: "Born in 1769, Napoleon spread the ideals of the French Revolution across Europe. He created the Napoleonic Code that still influences law today. He died in exile in 1821. His military genius changed the map of the world.",
+                    quote: "Impossible is a word found only in the dictionary of fools."
+                },
+                {
+                    name: "Charles de Gaulle",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Charles+de+Gaulle&font=playfair",
+                    desc: "Born in 1890, General de Gaulle led Free France against Nazi occupation during WWII. He became President and gave France a new constitution. He died in 1970. His 'Appeal of 18 June' saved French honor.",
+                    quote: "France has not lost the war."
+                },
+                {
+                    name: "Jean Moulin",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Jean+Moulin&font=playfair",
+                    desc: "Born in 1899, Jean Moulin unified the French Resistance against the Nazis. Tortured to death in 1943, he never betrayed his comrades. His ashes rest in the Pantheon. He is the symbol of French resistance.",
+                    quote: "I will not talk."
+                },
+                {
+                    name: "Lucie Aubrac",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Lucie+Aubrac&font=playfair",
+                    desc: "Born in 1912, Lucie Aubrac rescued her husband from Gestapo prison and fought in the Resistance. She lived until 2007. Her courage saved hundreds of lives and inspired the film 'Lucie Aubrac'.",
+                    quote: "I fight with my heart and my mind."
+                },
+                {
+                    name: "Maximilien Robespierre",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Robespierre&font=playfair",
+                    desc: "Born in 1758, Robespierre led the French Revolution and defended the Republic. Executed in 1794 during the Thermidor reaction, he died for the ideals of liberty, equality, fraternity. His vision shaped modern democracy.",
+                    quote: "The Revolution is the war of liberty against its enemies."
+                },
+                {
+                    name: "Marie Curie",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Marie+Curie&font=playfair",
+                    desc: "Born in 1867, Marie Curie discovered radioactivity and won two Nobel Prizes. She worked in the trenches during WWI saving soldiers' lives. She died in 1934 from radiation exposure. She opened science to women forever.",
+                    quote: "Nothing in life is to be feared, only understood."
+                },
+                {
+                    name: "Victor Hugo",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Victor+Hugo&font=playfair",
+                    desc: "Born in 1802, Victor Hugo fought for justice through his novels Les Misérables and The Hunchback of Notre-Dame. Exiled for opposing tyranny, he returned to a hero's welcome. He died in 1885. His words still fight for the oppressed.",
+                    quote: "Even the darkest night will end."
+                },
+                {
+                    name: "Louis Pasteur",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Louis+Pasteur&font=playfair",
+                    desc: "Born in 1822, Louis Pasteur saved millions of lives with vaccines and pasteurization. He fought for science against superstition. He died in 1895. His discoveries remain the foundation of modern medicine.",
+                    quote: "Science knows no country."
+                },
+                {
+                    name: "Simone Veil",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Simone+Veil&font=playfair",
+                    desc: "Born in 1927, Holocaust survivor Simone Veil passed the law legalizing abortion in France. She became the first female President of the European Parliament. She died in 2017. Her courage advanced women's rights across Europe.",
+                    quote: "I survived to fight for life."
+                }
+            ],
+            "United Kingdom": [
+                {
+                    name: "Winston Churchill",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Winston+Churchill&font=playfair",
+                    desc: "Born in 1874, Winston Churchill led Britain through the darkest days of WWII. His speeches inspired the world to resist tyranny. He died in 1965. His courage saved Western civilization.",
+                    quote: "We shall never surrender."
+                },
+                {
+                    name: "Queen Elizabeth I",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Queen+Elizabeth+I&font=playfair",
+                    desc: "Born in 1533, Elizabeth I defeated the Spanish Armada and created the golden age of England. She never married, dedicating her life to her people. She died in 1603. Her reign made Britain a world power.",
+                    quote: "I am your Queen and I will not be ruled."
+                },
+                {
+                    name: "Emmeline Pankhurst",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Emmeline+Pankhurst&font=playfair",
+                    desc: "Born in 1858, Emmeline Pankhurst led the suffragette movement. She endured imprisonment and force-feeding for women's right to vote. She died in 1928, just weeks before women gained the vote. Her sacrifice changed Britain forever.",
+                    quote: "Deeds, not words."
+                },
+                {
+                    name: "Boudica",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Boudica&font=playfair",
+                    desc: "Born around 30 AD, Queen Boudica led the greatest revolt against Roman rule in Britain. She destroyed three Roman cities before her final battle. She died in 61 AD. Her courage remains a symbol of British defiance.",
+                    quote: "I fight for my dead daughters."
+                },
+                {
+                    name: "Horatio Nelson",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Horatio+Nelson&font=playfair",
+                    desc: "Born in 1758, Admiral Nelson destroyed the French fleet at Trafalgar. He died in battle in 1805 with the words 'Kiss me, Hardy'. His victory secured British naval supremacy for a century.",
+                    quote: "England expects that every man will do his duty."
+                },
+                {
+                    name: "Florence Nightingale",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Florence+Nightingale&font=playfair",
+                    desc: "Born in 1820, Florence Nightingale revolutionized nursing during the Crimean War. She saved thousands of soldiers and founded modern nursing. She died in 1910. Her lamp still lights the way for caregivers.",
+                    quote: "I am a woman of action."
+                },
+                {
+                    name: "Isaac Newton",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Isaac+Newton&font=playfair",
+                    desc: "Born in 1643, Isaac Newton discovered the laws of gravity and motion. He built the foundation of modern science. He died in 1727. His work changed humanity's understanding of the universe.",
+                    quote: "If I have seen further it is by standing on the shoulders of giants."
+                },
+                {
+                    name: "William Shakespeare",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+William+Shakespeare&font=playfair",
+                    desc: "Born in 1564, Shakespeare gave the world Hamlet, Romeo and Juliet and countless immortal lines. He died in 1616. His words still speak to every human heart across centuries.",
+                    quote: "To be or not to be."
+                },
+                {
+                    name: "Oliver Cromwell",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Oliver+Cromwell&font=playfair",
+                    desc: "Born in 1599, Oliver Cromwell led the English Revolution and defeated the monarchy. He served as Lord Protector. He died in 1658. His actions paved the way for parliamentary democracy.",
+                    quote: "No one rises so high as he who knows not whither he is going."
+                },
+                {
+                    name: "Alfred the Great",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Alfred+the+Great&font=playfair",
+                    desc: "Born in 849, King Alfred the Great saved England from Viking conquest and promoted learning. He died in 899. He is the only English king called 'the Great'. His laws and wisdom shaped the nation.",
+                    quote: "I desire to live worthily as long as I live."
+                }
+            ],
+            "Japan": [
+                {
+                    name: "Sakamoto Ryoma",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Sakamoto+Ryoma&font=playfair",
+                    desc: "Born in 1836, Sakamoto Ryoma helped overthrow the shogunate and create modern Japan. Assassinated in 1867 at age 31. His vision led to the Meiji Restoration. He is the father of modern Japan.",
+                    quote: "I will do what is right."
+                },
+                {
+                    name: "Oda Nobunaga",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Oda+Nobunaga&font=playfair",
+                    desc: "Born in 1534, Oda Nobunaga began the unification of Japan. He revolutionized warfare and encouraged trade. He died by seppuku in 1582. His ambition changed Japanese history.",
+                    quote: "If I cannot rule, I will destroy."
+                },
+                {
+                    name: "Toyotomi Hideyoshi",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Toyotomi+Hideyoshi&font=playfair",
+                    desc: "Born in 1537, Hideyoshi completed the unification of Japan. He rose from peasant to ruler. He died in 1598. His laws and castle building shaped the nation.",
+                    quote: "From peasant to ruler."
+                },
+                {
+                    name: "Tokugawa Ieyasu",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Tokugawa+Ieyasu&font=playfair",
+                    desc: "Born in 1543, Tokugawa Ieyasu founded the Tokugawa shogunate that brought 250 years of peace. He died in 1616. His wisdom created modern Japan's foundations.",
+                    quote: "Patience is the key."
+                },
+                {
+                    name: "Emperor Meiji",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Emperor+Meiji&font=playfair",
+                    desc: "Born in 1852, Emperor Meiji opened Japan to the world and modernized the nation. He died in 1912. His reign transformed Japan into a global power.",
+                    quote: "Enrich the country, strengthen the army."
+                },
+                {
+                    name: "Saigo Takamori",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Saigo+Takamori&font=playfair",
+                    desc: "Born in 1828, Saigo Takamori led the Satsuma Rebellion. He died in battle in 1877. He is the last true samurai. His statue stands in Tokyo.",
+                    quote: "I will die with my honor."
+                },
+                {
+                    name: "Yoshida Shoin",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Yoshida+Shoin&font=playfair",
+                    desc: "Born in 1830, Yoshida Shoin inspired the Meiji revolutionaries. Executed in 1859 at age 29. His students changed Japan forever.",
+                    quote: "Better to die for a cause than live without one."
+                },
+                {
+                    name: "Takasugi Shinsaku",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Takasugi+Shinsaku&font=playfair",
+                    desc: "Born in 1839, Takasugi Shinsaku created the first modern Japanese army. He died in 1867. His military reforms helped overthrow the shogunate.",
+                    quote: "Reform or perish."
+                },
+                {
+                    name: "Katsu Kaishu",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Katsu+Kaishu&font=playfair",
+                    desc: "Born in 1823, Katsu Kaishu negotiated the peaceful surrender of Edo castle. He died in 1899. He prevented civil war and saved thousands of lives.",
+                    quote: "Peace through strength."
+                },
+                {
+                    name: "Ii Naosuke",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Ii+Naosuke&font=playfair",
+                    desc: "Born in 1815, Ii Naosuke opened Japan to the West. Assassinated in 1860. His courage began Japan's modernization.",
+                    quote: "Japan must join the world."
+                }
+            ],
+            "Brazil": [
+                {
+                    name: "Tiradentes",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Tiradentes&font=playfair",
+                    desc: "Born in 1746, Tiradentes led the Inconfidência Mineira against Portuguese rule. Hanged and quartered in 1792. His sacrifice sparked Brazilian independence. He is the national hero of freedom.",
+                    quote: "I die for Brazil."
+                },
+                {
+                    name: "Zumbi dos Palmares",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Zumbi+dos+Palmares&font=playfair",
+                    desc: "Born in 1655, Zumbi led the largest slave republic in the Americas. Killed in battle in 1695. His resistance against slavery inspires Brazil to this day.",
+                    quote: "Freedom or death."
+                },
+                {
+                    name: "Dom Pedro I",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Dom+Pedro+I&font=playfair",
+                    desc: "Born in 1798, Dom Pedro I declared Brazilian independence with the Cry of Ipiranga. He abdicated to ensure freedom. He died in 1834. He gave Brazil its liberty.",
+                    quote: "Independence or death!"
+                },
+                {
+                    name: "Princess Isabel",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Princess+Isabel&font=playfair",
+                    desc: "Born in 1846, Princess Isabel signed the Golden Law abolishing slavery in 1888. She lived until 1921. Her signature ended centuries of bondage.",
+                    quote: "Slavery ends today."
+                },
+                {
+                    name: "Santos Dumont",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Santos+Dumont&font=playfair",
+                    desc: "Born in 1873, Alberto Santos Dumont invented the airplane before the Wright brothers. He died in 1932. Brazil honors him as the father of aviation.",
+                    quote: "The sky belongs to all."
+                },
+                {
+                    name: "Chico Mendes",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Chico+Mendes&font=playfair",
+                    desc: "Born in 1944, Chico Mendes defended the Amazon rainforest and its people. Assassinated in 1988. His death sparked global environmental awareness.",
+                    quote: "I will fight for the forest until my last breath."
+                },
+                {
+                    name: "Getúlio Vargas",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Getúlio+Vargas&font=playfair",
+                    desc: "Born in 1882, Getúlio Vargas modernized Brazil and gave workers rights. He died in 1954. His leadership shaped modern Brazil.",
+                    quote: "Brazil is for Brazilians."
+                },
+                {
+                    name: "Oscar Niemeyer",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Oscar+Niemeyer&font=playfair",
+                    desc: "Born in 1907, Oscar Niemeyer designed Brasília and gave Brazil its modernist soul. He lived until 2012. His curves still define Brazilian identity.",
+                    quote: "Form follows freedom."
+                },
+                {
+                    name: "Princess Leopoldina",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Princess+Leopoldina&font=playfair",
+                    desc: "Born in 1797, Princess Leopoldina pushed for Brazilian independence. She died in 1826. Without her courage Brazil might still be a colony.",
+                    quote: "Brazil must be free."
+                },
+                {
+                    name: "Candido Portinari",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Candido+Portinari&font=playfair",
+                    desc: "Born in 1903, Candido Portinari painted the suffering and beauty of Brazil. His murals in the UN still speak for the oppressed. He died in 1962.",
+                    quote: "Art is the voice of the people."
+                }
+            ],
+            "Mexico": [
+                {
+                    name: "Miguel Hidalgo",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Miguel+Hidalgo&font=playfair",
+                    desc: "Born in 1753, Father Miguel Hidalgo gave the Grito de Dolores that began Mexican independence. Executed in 1811. His cry still echoes every September 16.",
+                    quote: "Viva Mexico!"
+                },
+                {
+                    name: "José María Morelos",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+José+María+Morelos&font=playfair",
+                    desc: "Born in 1765, Morelos continued the independence war after Hidalgo. Captured and executed in 1815. His vision created the modern Mexican nation.",
+                    quote: "I will die for my country."
+                },
+                {
+                    name: "Benito Juárez",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Benito+Juárez&font=playfair",
+                    desc: "Born in 1806, Benito Juárez became Mexico's first indigenous President. He defeated French invasion and restored the Republic. He died in 1872. His laws still protect Mexico.",
+                    quote: "Respect for others' rights is peace."
+                },
+                {
+                    name: "Emiliano Zapata",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Emiliano+Zapata&font=playfair",
+                    desc: "Born in 1879, Emiliano Zapata fought for land and liberty with the cry 'Tierra y Libertad'. Assassinated in 1919. His spirit still lives in every Mexican peasant.",
+                    quote: "It is better to die on your feet than live on your knees."
+                },
+                {
+                    name: "Pancho Villa",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Pancho+Villa&font=playfair",
+                    desc: "Born in 1878, Pancho Villa led the Northern Division in the Mexican Revolution. Assassinated in 1923. His courage and horsemanship became legend.",
+                    quote: "I am the people."
+                },
+                {
+                    name: "Francisco Madero",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Francisco+Madero&font=playfair",
+                    desc: "Born in 1873, Francisco Madero started the Mexican Revolution with the Plan of San Luis Potosí. Assassinated in 1913. He gave Mexico its democratic dream.",
+                    quote: "The people want effective suffrage."
+                },
+                {
+                    name: "Lázaro Cárdenas",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Lázaro+Cárdenas&font=playfair",
+                    desc: "Born in 1895, President Lázaro Cárdenas nationalized the oil industry and gave land to the people. He died in 1970. His reforms transformed Mexico.",
+                    quote: "Mexico for the Mexicans."
+                },
+                {
+                    name: "Cuauhtémoc",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Cuauhtémoc&font=playfair",
+                    desc: "Born around 1500, Cuauhtémoc was the last Aztec emperor who fought Cortés to the end. Executed in 1525. His courage symbolizes Mexican resistance.",
+                    quote: "I will not surrender."
+                },
+                {
+                    name: "Sor Juana Inés de la Cruz",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Sor+Juana&font=playfair",
+                    desc: "Born in 1648, Sor Juana was the greatest poet and intellectual of colonial Mexico. She defended women's right to education. She died in 1695. Her words still empower women.",
+                    quote: "I think, therefore I am a woman."
+                },
+                {
+                    name: "Frida Kahlo",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Frida+Kahlo&font=playfair",
+                    desc: "Born in 1907, Frida Kahlo turned pain into powerful art. She fought for Mexican identity and women's rights. She died in 1954. Her spirit lives in every Mexican heart.",
+                    quote: "I paint my own reality."
+                }
+            ],
+            "China": [
+                {
+                    name: "Sun Yat-sen",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Sun+Yat-sen&font=playfair",
+                    desc: "Born in 1866, Sun Yat-sen founded modern China and led the 1911 Revolution. He died in 1925. His Three Principles of the People still guide the nation.",
+                    quote: "The revolution has not yet succeeded."
+                },
+                {
+                    name: "Mao Zedong",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Mao+Zedong&font=playfair",
+                    desc: "Born in 1893, Mao Zedong founded the People's Republic of China in 1949. He led the Long March and liberated the nation. He died in 1976. His vision transformed China.",
+                    quote: "The people are the true heroes."
+                },
+                {
+                    name: "Zhou Enlai",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Zhou+Enlai&font=playfair",
+                    desc: "Born in 1898, Zhou Enlai was the beloved Premier who kept China united. He died in 1976. His diplomacy opened China to the world.",
+                    quote: "Serve the people."
+                },
+                {
+                    name: "Deng Xiaoping",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Deng+Xiaoping&font=playfair",
+                    desc: "Born in 1904, Deng Xiaoping opened China to the world and created economic reform. He died in 1997. His vision lifted hundreds of millions from poverty.",
+                    quote: "It doesn't matter if the cat is black or white."
+                },
+                {
+                    name: "Qin Shi Huang",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Qin+Shi+Huang&font=playfair",
+                    desc: "Born in 259 BC, Qin Shi Huang unified China and built the Great Wall. He died in 210 BC. He created the first Chinese empire.",
+                    quote: "I will make China one."
+                },
+                {
+                    name: "Confucius",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Confucius&font=playfair",
+                    desc: "Born in 551 BC, Confucius taught moral governance and harmony. His teachings shaped Chinese civilization for 2500 years. He died in 479 BC.",
+                    quote: "It is not the way to go."
+                },
+                {
+                    name: "Emperor Wu of Han",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Emperor+Wu&font=playfair",
+                    desc: "Born in 156 BC, Emperor Wu expanded China to its greatest territorial extent. He died in 87 BC. His reign opened the Silk Road.",
+                    quote: "Heaven favors the bold."
+                },
+                {
+                    name: "Zheng He",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Zheng+He&font=playfair",
+                    desc: "Born in 1371, Admiral Zheng He led seven voyages that reached Africa and Arabia. He died in 1433. His fleets showed China's peaceful power.",
+                    quote: "We come in peace."
+                },
+                {
+                    name: "Hua Mulan",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Hua+Mulan&font=playfair",
+                    desc: "Legendary warrior who took her father's place in battle. Her story inspired generations of Chinese women. Her courage saved her family and country.",
+                    quote: "I will fight for my father."
+                },
+                {
+                    name: "Li Bai",
+                    image: "https://placehold.co/600x800/1a120b/d2b48c/png?text=ENGRAVING+Li+Bai&font=playfair",
+                    desc: "Born in 701, Li Bai was China's greatest poet who celebrated freedom and nature. He died in 762. His verses still inspire the soul of China.",
+                    quote: "Drinking alone under the moon."
+                }
+            ]
+        }
+
+        let currentTab = "Nepal"
+        let currentSpeaking = null
+        let audioPlaying = false
+        const audio = document.getElementById("tomb-music")
+
+        function toggleMusic() {
+            const btn = document.getElementById("music-toggle")
+            if (audioPlaying) {
+                audio.pause()
+                btn.innerHTML = `<i class="fas fa-play"></i>`
+            } else {
+                audio.play().catch(() => {})
+                btn.innerHTML = `<i class="fas fa-pause"></i>`
+            }
+            audioPlaying = !audioPlaying
+        }
+
+        function speak(text) {
+            if (currentSpeaking) {
+                speechSynthesis.cancel()
+            }
+            const utterance = new SpeechSynthesisUtterance(text)
+            utterance.pitch = 0.65
+            utterance.rate = 0.92
+            utterance.volume = 0.9
+            currentSpeaking = utterance
+            speechSynthesis.speak(utterance)
+            utterance.onend = () => { currentSpeaking = null }
+        }
+
+        function speakWelcome() {
+            speak("Welcome to the uncovered truth. Enter the tomb of heroes and martyrs.")
+        }
+
+        function readModalDesc() {
+            const descEl = document.getElementById("modal-desc")
+            if (descEl) speak(descEl.textContent)
+        }
+
+        function createTabs() {
+            const container = document.getElementById("country-tabs")
+            Object.keys(heroesData).forEach(country => {
+                const btn = document.createElement("button")
+                btn.className = `px-8 py-3 text-sm font-bold border-b-4 transition-all ${currentTab === country ? "border-[#b22222] text-[#b22222]" : "border-transparent hover:border-[#8b0000]"}`
+                btn.textContent = country.toUpperCase()
+                btn.onclick = () => {
+                    currentTab = country
+                    createTabs()
+                    renderHeroes()
+                }
+                container.appendChild(btn)
+            })
+        }
+
+        function renderHeroes() {
+            const grid = document.getElementById("heroes-grid")
+            grid.innerHTML = ""
+            heroesData[currentTab].forEach(hero => {
+                const cardHTML = `
+                    <div onclick="openHeroModal('${hero.name}')" class="card bg-[#0f0a06] border-2 border-[#8b0000] overflow-hidden cursor-pointer group">
+                        <div class="relative">
+                            <img src="${hero.image}" class="w-full h-80 object-cover vintage transition-all group-hover:scale-105" alt="${hero.name}">
+                            <div class="absolute top-4 right-4 bg-black/70 text-[#b22222] text-xs px-3 py-1 font-bold">${currentTab}</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-2xl text-white title-font">${hero.name}</h4>
+                                <button onclick="event.stopImmediatePropagation(); speak('${hero.desc.replace(/'/g, "\\'")}');" 
+                                        class="speaker-btn text-3xl text-[#b22222]">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                            <p class="text-[#d2b48c]/70 text-sm line-clamp-2">Click to read the full story of sacrifice...</p>
+                        </div>
+                    </div>
+                `
+                grid.innerHTML += cardHTML
+            })
+        }
+
+        let currentHeroData = null
+
+        function openHeroModal(name) {
+            const hero = heroesData[currentTab].find(h => h.name === name)
+            if (!hero) return
+            currentHeroData = hero
+            
+            document.getElementById("modal").classList.remove("hidden")
+            document.getElementById("modal-img").src = hero.image
+            document.getElementById("modal-name").textContent = hero.name
+            document.getElementById("modal-country").textContent = currentTab
+            document.getElementById("modal-desc").innerHTML = hero.desc
+            document.getElementById("modal-quote").innerHTML = `“${hero.quote}”`
+        }
+
+        function closeModal() {
+            document.getElementById("modal").classList.add("hidden")
+            if (currentSpeaking) speechSynthesis.cancel()
+        }
+
+        // Form handler
+        function initForm() {
+            const form = document.getElementById("contact-form")
+            form.onsubmit = function(e) {
+                e.preventDefault()
+                alert("Thank you! Your suggestion has been received. We will contact you at kunwargaurav832@gmail.com. Welcome to suggest new countries and heroes!")
+                form.reset()
+            }
+        }
+
+        // Keyboard escape for modal
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") {
+                const modal = document.getElementById("modal")
+                if (!modal.classList.contains("hidden")) closeModal()
+            }
+        })
+
+        // Initialize everything
+        function initializeMuseum() {
+            initTailwind()
+            createTabs()
+            renderHeroes()
+            initForm()
+            
+            // Auto-play music after user interaction (browser policy)
+            document.body.addEventListener("click", () => {
+                if (!audioPlaying) {
+                    // Do not auto-play to respect user
+                }
+            }, { once: true })
+            
+            // Make sure modal starts hidden
+            document.getElementById("modal").classList.add("hidden")
+        }
+
+        window.onload = initializeMuseum
+    </script>
+</body>
+</html>
