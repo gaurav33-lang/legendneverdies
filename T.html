@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gandhi Sketch Generator</title>
+</head>
+<body style="text-align:center; font-family:sans-serif; background:#111; color:white;">
+
+<h2>🖌️ Gandhi Sketch Generator</h2>
+<canvas id="canvas"></canvas><br><br>
+<button onclick="download()">⬇️ Download Sketch</button>
+
+<script>
+// Load Gandhi image automatically
+const img = new Image();
+img.crossOrigin = "anonymous";
+img.src = "https://upload.wikimedia.org/wikipedia/commons/d/d1/Mahatma_Gandhi_portrait.jpg";
+
+img.onload = function() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  ctx.drawImage(img, 0, 0);
+
+  let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let data = imageData.data;
+
+  // Convert to grayscale
+  for (let i = 0; i < data.length; i += 4) {
+    let gray = (data[i] + data[i+1] + data[i+2]) / 3;
+    data[i] = data[i+1] = data[i+2] = gray;
+  }
+
+  // Invert colors
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = 255 - data[i];
+    data[i+1] = 255 - data[i+1];
+    data[i+2] = 255 - data[i+2];
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+};
+
+// Download function
+function download() {
+  const link = document.createElement("a");
+  link.download = "gandhi_sketch.png";
+  link.href = document.getElementById("canvas").toDataURL();
+  link.click();
+}
+</script>
+
+</body>
+</html>
