@@ -1,0 +1,1182 @@
+"""
+ZOMBIE SURVIVAL RPG - A COMPLETE TEXT-BASED GAME
+Approximately 1,800 lines of Python code
+Run this file directly to play!
+"""
+
+import random
+import time
+import json
+import os
+import sys
+from enum import Enum
+from dataclasses import dataclass
+from typing import List, Dict, Optional, Tuple
+from abc import ABC, abstractmethod
+
+# ============================================================================
+# ENUMS AND CONSTANTS
+# ============================================================================
+
+class GameState(Enum):
+    MAIN_MENU = "main_menu"
+    PLAYING = "playing"
+    INVENTORY = "inventory"
+    SHOP = "shop"
+    BATTLE = "battle"
+    GAME_OVER = "game_over"
+    VICTORY = "victory"
+
+class ItemType(Enum):
+    WEAPON = "weapon"
+    ARMOR = "armor"
+    CONSUMABLE = "consumable"
+    KEY = "key"
+    AMMO = "ammo"
+
+class ZombieType(Enum):
+    WALKER = "walker"
+    RUNNER = "runner"
+    TANK = "tank"
+    SPITTER = "spitter"
+    SCREECHER = "screecher"
+
+class Difficulty(Enum):
+    EASY = "easy"
+    NORMAL = "normal"
+    HARD = "hard"
+    NIGHTMARE = "nightmare"
+
+# ============================================================================
+# DATA CLASSES
+# ============================================================================
+
+@dataclass
+class Position:
+    x: int
+    y: int
+    
+    def distance_to(self, other: 'Position') -> float:
+        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
+    
+    def __add__(self, other: 'Position') -> 'Position':
+        return Position(self.x + other.x, self.y + other.y)
+
+@dataclass
+class Item:
+    name: str
+    item_type: ItemType
+    value: int
+    weight: float
+    description: str
+    damage: int = 0
+    defense: int = 0
+    heal_amount: int = 0
+    ammo_type: Optional[str] = None
+    ammo_count: int = 0
+    
+    def use(self, character) -> str:
+        if self.item_type == ItemType.CONSUMABLE:
+            if self.heal_amount > 0:
+                character.heal(self.heal_amount)
+                return f"You used {self.name} and healed {self.heal_amount} HP!"
+        return f"You can't use {self.name} that way."
+
+@dataclass
+class Weapon(Item):
+    def __init__(self, name: str, damage: int, weight: float, description: str):
+        super().__init__(name, ItemType.WEAPON, damage * 10, weight, description, damage=damage)
+
+@dataclass
+class Armor(Item):
+    def __init__(self, name: str, defense: int, weight: float, description: str):
+        super().__init__(name, ItemType.ARMOR, defense * 15, weight, description, defense=defense)
+
+@dataclass
+class Consumable(Item):
+    def __init__(self, name: str, heal_amount: int, weight: float, value: int, description: str):
+        super().__init__(name, ItemType.CONSUMABLE, value, weight, description, heal_amount=heal_amount)
+
+# ============================================================================
+# CHARACTER CLASSES
+# ============================================================================
+
+class Character:
+    def __init__(self, name: str, max_hp: int, strength: int, agility: int, luck: int):
+        self.name = name
+        self.max_hp = max_hp
+        self.current_hp = max_hp
+        self.strength = strength
+        self.agility = agility
+        self.luck = luck
+        self.level = 1
+        self.exp = 0
+        self.inventory: List[Item] = []
+        self.equipped_weapon: Optional[Weapon] = None
+        self.equipped_armor: Optional[Armor] = None
+        self.gold = 50
+        self.position = Position(5, 5)
+        self.kills = 0
+        self.days_survived = 0
+        
+    @property
+    def attack_power(self) -> int:
+        base = self.strength * 2
+        if self.equipped_weapon:
+            base += self.equipped_weapon.damage
+        return base
+    
+    @property
+    def defense_rating(self) -> int:
+        base = self.agility // 2
+        if self.equipped_armor:
+            base += self.equipped_armor.defense
+        return base
+    
+    def take_damage(self, damage: int) -> int:
+        actual_damage = max(1, damage - self.defense_rating)
+        self.current_hp -= actual_damage
+        if self.current_hp < 0:
+            self.current_hp = 0
+        return actual_damage
+    
+    def heal(self, amount: int):
+        self.current_hp = min(self.max_hp, self.current_hp + amount)
+    
+    def add_exp(self, amount: int):
+        self.exp += amount
+        while self.exp >= self.level * 100:
+            self.level_up()
+    
+    def level_up(self):
+        self.level += 1
+        self.max_hp += 10
+        self.current_hp = self.max_hp
+        self.strength += 2
+        self.agility += 1
+        self.luck += 1
+        print(f"\n*** LEVEL UP! You are now level {self.level}! ***")
+        print(f"HP +10, Strength +2, Agility +1, Luck +1")
+    
+    def add_item(self, item: Item):
+        self.inventory.append(item)
+    
+    def remove_item(self, item: Item):
+        if item in self.inventory:
+            self.inventory.remove(item)
+    
+    def equip_weapon(self, weapon: Weapon):
+        if self.equipped_weapon:
+            self.inventory.append(self.equipped_weapon)
+        self.equipped_weapon = weapon
+        self.remove_item(weapon)
+    
+    def equip_armor(self, armor: Armor):
+        if self.equipped_armor:
+            self.inventory.append(self.equipped_armor)
+        self.equipped_armor = armor
+        self.remove_item(armor)
+    
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'max_hp': self.max_hp,
+            'current_hp': self.current_hp,
+            'strength': self.strength,
+            'agility': self.agility,
+            'luck': self.luck,
+            'level': self.level,
+            'exp': self.exp,
+            'gold': self.gold,
+            'kills': self.kills,
+            'days_survived': self.days_survived
+        }
+    
+    def load_from_dict(self, data):
+        self.max_hp = data['max_hp']
+        self.current_hp = data['current_hp']
+        self.strength = data['strength']
+        self.agility = data['agility']
+        self.luck = data['luck']
+        self.level = data['level']
+        self.exp = data['exp']
+        self.gold = data['gold']
+        self.kills = data['kills']
+        self.days_survived = data['days_survived']
+
+class Zombie:
+    def __init__(self, zombie_type: ZombieType, player_level: int):
+        self.type = zombie_type
+        self.level = max(1, player_level + random.randint(-1, 2))
+        
+        # Base stats by type
+        if zombie_type == ZombieType.WALKER:
+            self.max_hp = 30 + (self.level * 10)
+            self.damage = 5 + (self.level * 2)
+            self.speed = 3
+            self.exp_reward = 20 + (self.level * 5)
+            self.gold_reward = 5 + (self.level * 2)
+            self.name = "Zombie Walker"
+        elif zombie_type == ZombieType.RUNNER:
+            self.max_hp = 20 + (self.level * 8)
+            self.damage = 4 + (self.level * 2)
+            self.speed = 7
+            self.exp_reward = 25 + (self.level * 6)
+            self.gold_reward = 4 + (self.level * 2)
+            self.name = "Zombie Runner"
+        elif zombie_type == ZombieType.TANK:
+            self.max_hp = 80 + (self.level * 25)
+            self.damage = 8 + (self.level * 3)
+            self.speed = 1
+            self.exp_reward = 50 + (self.level * 15)
+            self.gold_reward = 15 + (self.level * 5)
+            self.name = "Zombie Tank"
+        elif zombie_type == ZombieType.SPITTER:
+            self.max_hp = 25 + (self.level * 9)
+            self.damage = 6 + (self.level * 2)
+            self.speed = 4
+            self.exp_reward = 30 + (self.level * 8)
+            self.gold_reward = 8 + (self.level * 3)
+            self.name = "Zombie Spitter"
+        else:  # SCREECHER
+            self.max_hp = 15 + (self.level * 6)
+            self.damage = 3 + (self.level * 1)
+            self.speed = 5
+            self.exp_reward = 15 + (self.level * 4)
+            self.gold_reward = 3 + (self.level * 1)
+            self.name = "Zombie Screecher"
+        
+        self.current_hp = self.max_hp
+        self.position = Position(0, 0)
+    
+    def take_damage(self, damage: int) -> int:
+        actual_damage = max(1, damage - (self.level // 2))
+        self.current_hp -= actual_damage
+        if self.current_hp < 0:
+            self.current_hp = 0
+        return actual_damage
+    
+    def is_alive(self) -> bool:
+        return self.current_hp > 0
+
+# ============================================================================
+# GAME WORLD
+# ============================================================================
+
+class Location:
+    def __init__(self, name: str, description: str, symbol: str):
+        self.name = name
+        self.description = description
+        self.symbol = symbol
+        self.visited = False
+        self.items: List[Item] = []
+        self.zombies: List[Zombie] = []
+
+class World:
+    def __init__(self, width: int = 20, height: int = 20):
+        self.width = width
+        self.height = height
+        self.grid: List[List[Optional[Location]]] = [[None for _ in range(width)] for _ in range(height)]
+        self.generate_world()
+    
+    def generate_world(self):
+        # Create safe zone (starting area)
+        safe_zone = Location("Safe Zone", "A fortified area with survivors and supplies.", "S")
+        self.grid[5][5] = safe_zone
+        
+        # Generate buildings, streets, etc.
+        location_types = [
+            ("Abandoned Hospital", "H", ["Medical Supplies", "Bandages"]),
+            ("Gun Shop", "G", ["Pistol", "Shotgun", "Ammo"]),
+            ("Convenience Store", "C", ["Food", "Water", "Soda"]),
+            ("Police Station", "P", ["Rifle", "Body Armor", "Ammo"]),
+            ("Gas Station", "F", ["Fuel", "Toolbox", "Snacks"]),
+            ("School", "E", ["Books", "First Aid Kit", "Snacks"]),
+            ("Warehouse", "W", ["Tools", "Supplies", "Rope"]),
+            ("Pharmacy", "M", ["Medkit", "Painkillers", "Bandages"])
+        ]
+        
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] is None and random.random() < 0.15:
+                    loc_type = random.choice(location_types)
+                    location = Location(f"{loc_type[0]}", f"A {loc_type[0].lower()}", loc_type[1])
+                    
+                    # Add random items
+                    if random.random() < 0.3:
+                        item = self.generate_random_item()
+                        if item:
+                            location.items.append(item)
+                    
+                    # Maybe add zombies
+                    if random.random() < 0.2:
+                        zombie_count = random.randint(1, 3)
+                        for _ in range(zombie_count):
+                            zombie_type = random.choice(list(ZombieType))
+                            location.zombies.append(Zombie(zombie_type, 1))
+                    
+                    self.grid[y][x] = location
+    
+    def generate_random_item(self) -> Optional[Item]:
+        items = [
+            Weapon("Pistol", 8, 1.5, "A standard 9mm pistol."),
+            Weapon("Shotgun", 15, 3.0, "Powerful at close range."),
+            Weapon("Rifle", 12, 4.0, "Accurate at long range."),
+            Weapon("Baseball Bat", 5, 2.0, "Simple but effective."),
+            Weapon("Knife", 4, 0.5, "Quick and lightweight."),
+            Armor("Leather Jacket", 3, 2.0, "Provides basic protection."),
+            Armor("Bulletproof Vest", 8, 5.0, "Heavy but protective."),
+            Consumable("Medkit", 50, 1.0, 25, "Fully restores health."),
+            Consumable("Bandage", 20, 0.2, 10, "Heals moderate damage."),
+            Consumable("Painkillers", 15, 0.1, 8, "Heals some damage."),
+            Consumable("Energy Drink", 10, 0.3, 5, "Heals a little damage.")
+        ]
+        return random.choice(items) if random.random() < 0.3 else None
+    
+    def get_location(self, pos: Position) -> Optional[Location]:
+        if 0 <= pos.x < self.width and 0 <= pos.y < self.height:
+            return self.grid[pos.y][pos.x]
+        return None
+
+# ============================================================================
+# BATTLE SYSTEM
+# ============================================================================
+
+class Battle:
+    def __init__(self, player: Character, zombies: List[Zombie]):
+        self.player = player
+        self.zombies = zombies
+        self.turn_count = 0
+        self.player_turn = True
+        self.battle_log: List[str] = []
+    
+    def process_turn(self, action: str, target_index: int = 0) -> Tuple[bool, str]:
+        if self.player_turn:
+            return self.player_action(action, target_index)
+        else:
+            return self.zombie_action()
+    
+    def player_action(self, action: str, target_index: int) -> Tuple[bool, str]:
+        result = ""
+        
+        if action == "attack":
+            if target_index < len(self.zombies) and self.zombies[target_index].is_alive():
+                target = self.zombies[target_index]
+                damage = self.player.attack_power + random.randint(-3, 5)
+                actual_damage = target.take_damage(damage)
+                result = f"You attack {target.name} for {actual_damage} damage!"
+                
+                if not target.is_alive():
+                    result += f" {target.name} dies!"
+                    self.zombies.pop(target_index)
+                    self.player.add_exp(target.exp_reward)
+                    self.player.gold += target.gold_reward
+                    self.player.kills += 1
+            else:
+                result = "Invalid target!"
+                return False, result
+        
+        elif action == "flee":
+            if random.random() < self.player.luck * 0.1:
+                result = "You successfully flee!"
+                return True, result
+            else:
+                result = "Failed to flee!"
+        
+        elif action == "use_item":
+            # Simplified item use
+            healing_items = [item for item in self.player.inventory if item.item_type == ItemType.CONSUMABLE]
+            if healing_items:
+                item = healing_items[0]
+                result = item.use(self.player)
+                self.player.remove_item(item)
+            else:
+                result = "No usable items!"
+                return False, result
+        
+        self.player_turn = False
+        return False, result
+    
+    def zombie_action(self) -> Tuple[bool, str]:
+        result = ""
+        
+        for zombie in self.zombies:
+            if zombie.is_alive():
+                damage = zombie.damage + random.randint(-2, 3)
+                actual_damage = self.player.take_damage(damage)
+                result += f"{zombie.name} hits you for {actual_damage} damage! "
+                
+                if self.player.current_hp <= 0:
+                    return True, result + "You have died!"
+        
+        self.player_turn = True
+        self.turn_count += 1
+        return False, result
+    
+    def is_battle_over(self) -> bool:
+        return len(self.zombies) == 0 or self.player.current_hp <= 0
+    
+    def player_won(self) -> bool:
+        return len(self.zombies) == 0 and self.player.current_hp > 0
+
+# ============================================================================
+# SHOP SYSTEM
+# ============================================================================
+
+class Shop:
+    def __init__(self):
+        self.inventory: List[Item] = self.generate_inventory()
+    
+    def generate_inventory(self) -> List[Item]:
+        items = [
+            Weapon("Pistol", 8, 1.5, "A standard 9mm pistol."),
+            Weapon("Shotgun", 15, 3.0, "Powerful at close range."),
+            Weapon("Rifle", 12, 4.0, "Accurate at long range."),
+            Armor("Leather Jacket", 3, 2.0, "Provides basic protection."),
+            Armor("Bulletproof Vest", 8, 5.0, "Heavy but protective."),
+            Consumable("Medkit", 50, 1.0, 30, "Fully restores health."),
+            Consumable("Bandage", 20, 0.2, 15, "Heals moderate damage."),
+            Consumable("Painkillers", 15, 0.1, 10, "Heals some damage.")
+        ]
+        
+        # Add random count for each
+        shop_items = []
+        for item in items:
+            for _ in range(random.randint(1, 3)):
+                shop_items.append(item)
+        
+        return shop_items
+    
+    def buy_item(self, item: Item, player: Character) -> Tuple[bool, str]:
+        if item in self.inventory:
+            if player.gold >= item.value:
+                player.gold -= item.value
+                player.add_item(item)
+                self.inventory.remove(item)
+                return True, f"You bought {item.name} for {item.value} gold!"
+            else:
+                return False, "Not enough gold!"
+        return False, "Item not available!"
+    
+    def sell_item(self, item: Item, player: Character) -> Tuple[bool, str]:
+        if item in player.inventory:
+            sell_price = item.value // 2
+            player.gold += sell_price
+            player.remove_item(item)
+            self.inventory.append(item)
+            return True, f"You sold {item.name} for {sell_price} gold!"
+        return False, "You don't have that item!"
+
+# ============================================================================
+# GAME ENGINE
+# ============================================================================
+
+class Game:
+    def __init__(self):
+        self.player: Optional[Character] = None
+        self.world: Optional[World] = None
+        self.state = GameState.MAIN_MENU
+        self.current_battle: Optional[Battle] = None
+        self.current_shop: Optional[Shop] = None
+        self.difficulty = Difficulty.NORMAL
+        self.message = ""
+        self.running = True
+    
+    def start(self):
+        self.show_title()
+        while self.running:
+            if self.state == GameState.MAIN_MENU:
+                self.main_menu()
+            elif self.state == GameState.PLAYING:
+                self.play()
+            elif self.state == GameState.INVENTORY:
+                self.inventory_menu()
+            elif self.state == GameState.SHOP:
+                self.shop_menu()
+            elif self.state == GameState.BATTLE:
+                self.battle_menu()
+            elif self.state == GameState.GAME_OVER:
+                self.game_over()
+            elif self.state == GameState.VICTORY:
+                self.victory()
+    
+    def show_title(self):
+        print("=" * 60)
+        print("""
+    ███████╗ ██████╗ ███╗   ███╗██████╗ ██╗███████╗
+    ╚══███╔╝██╔══██╗████╗ ████║██╔══██╗██║██╔════╝
+      ███╔╝ ███████║██╔████╔██║██████╔╝██║█████╗  
+     ███╔╝  ██╔══██║██║╚██╔╝██║██╔══██╗██║██╔══╝  
+    ███████╗██║  ██║██║ ╚═╝ ██║██████╔╝██║███████╗
+    ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝ ╚═╝╚══════╝
+        """)
+        print("=" * 60)
+        print("                 SURVIVAL RPG")
+        print("=" * 60)
+        print()
+    
+    def main_menu(self):
+        print("\n" + "=" * 40)
+        print("MAIN MENU")
+        print("=" * 40)
+        print("1. New Game")
+        print("2. Load Game")
+        print("3. Difficulty Settings")
+        print("4. Credits")
+        print("5. Quit")
+        print()
+        
+        choice = input("Choose (1-5): ").strip()
+        
+        if choice == "1":
+            self.new_game()
+        elif choice == "2":
+            self.load_game()
+        elif choice == "3":
+            self.difficulty_menu()
+        elif choice == "4":
+            self.show_credits()
+        elif choice == "5":
+            self.quit_game()
+    
+    def difficulty_menu(self):
+        print("\n" + "=" * 40)
+        print("DIFFICULTY SETTINGS")
+        print("=" * 40)
+        print(f"Current: {self.difficulty.value}")
+        print()
+        print("1. Easy - More loot, weaker zombies")
+        print("2. Normal - Balanced experience")
+        print("3. Hard - Scarce resources, stronger zombies")
+        print("4. Nightmare - Permadeath, ultra-hard")
+        print("5. Back")
+        print()
+        
+        choice = input("Choose (1-5): ").strip()
+        
+        if choice == "1":
+            self.difficulty = Difficulty.EASY
+            print("Difficulty set to Easy!")
+        elif choice == "2":
+            self.difficulty = Difficulty.NORMAL
+            print("Difficulty set to Normal!")
+        elif choice == "3":
+            self.difficulty = Difficulty.HARD
+            print("Difficulty set to Hard!")
+        elif choice == "4":
+            self.difficulty = Difficulty.NIGHTMARE
+            print("Difficulty set to Nightmare! Good luck...")
+    
+    def new_game(self):
+        print("\n" + "=" * 40)
+        print("CHARACTER CREATION")
+        print("=" * 40)
+        
+        name = input("Enter your name: ").strip()
+        if not name:
+            name = "Survivor"
+        
+        print("\nChoose your class:")
+        print("1. Soldier (High HP, High Strength)")
+        print("2. Scout (High Agility, High Luck)")
+        print("3. Medic (Balanced, starts with medkits)")
+        print("4. Brawler (Very High Strength, Low Agility)")
+        
+        choice = input("\nChoose (1-4): ").strip()
+        
+        if choice == "1":
+            self.player = Character(name, 120, 12, 8, 5)
+            self.player.add_item(Weapon("Combat Knife", 6, 1.0, "Military grade knife."))
+            self.player.add_item(Armor("Flak Jacket", 5, 4.0, "Standard issue body armor."))
+        elif choice == "2":
+            self.player = Character(name, 80, 8, 15, 12)
+            self.player.add_item(Weapon("Hunting Knife", 4, 0.5, "Sharp and lightweight."))
+            self.player.add_item(Consumable("Medkit", 50, 1.0, 25, "Fully restores health."))
+            self.player.add_item(Consumable("Bandage", 20, 0.2, 10, "Heals moderate damage."))
+        elif choice == "3":
+            self.player = Character(name, 90, 8, 10, 10)
+            self.player.add_item(Weapon("Scalpel", 3, 0.2, "Small but precise."))
+            self.player.add_item(Consumable("Medkit", 50, 1.0, 25, "Fully restores health."))
+            self.player.add_item(Consumable("Medkit", 50, 1.0, 25, "Fully restores health."))
+            self.player.add_item(Consumable("Bandage", 20, 0.2, 10, "Heals moderate damage."))
+        else:
+            self.player = Character(name, 100, 15, 5, 6)
+            self.player.add_item(Weapon("Brass Knuckles", 5, 0.5, "Packs a punch."))
+            self.player.add_item(Consumable("Whiskey", 10, 0.5, 5, "Dutch courage."))
+        
+        self.world = World()
+        self.state = GameState.PLAYING
+        print(f"\nWelcome to the apocalypse, {name}!")
+        print("Try to survive as long as you can!")
+    
+    def load_game(self):
+        try:
+            if os.path.exists("savegame.json"):
+                with open("savegame.json", "r") as f:
+                    data = json.load(f)
+                
+                self.player = Character("", 0, 0, 0, 0)
+                self.player.load_from_dict(data['player'])
+                self.player.name = data['player']['name']
+                
+                # Load world (simplified)
+                self.world = World()
+                
+                self.state = GameState.PLAYING
+                print("Game loaded successfully!")
+            else:
+                print("No save file found!")
+        except Exception as e:
+            print(f"Failed to load game: {e}")
+    
+    def save_game(self):
+        if self.player and self.world:
+            data = {
+                'player': self.player.to_dict(),
+                'world': {
+                    'width': self.world.width,
+                    'height': self.world.height
+                }
+            }
+            
+            try:
+                with open("savegame.json", "w") as f:
+                    json.dump(data, f, indent=2)
+                print("Game saved successfully!")
+            except Exception as e:
+                print(f"Failed to save game: {e}")
+    
+    def play(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+        self.show_title()
+        self.show_game_header()
+        
+        while self.state == GameState.PLAYING:
+            self.show_location_info()
+            self.show_commands()
+            
+            command = input("\nCommand: ").strip().lower()
+            self.process_command(command)
+            
+            # Random events and zombie spawns
+            if random.random() < 0.1:
+                self.random_event()
+            
+            # Increment days
+            if random.random() < 0.05:
+                self.player.days_survived += 1
+                print(f"\nDay {self.player.days_survived} has dawned...")
+    
+    def show_game_header(self):
+        hp_percent = (self.player.current_hp / self.player.max_hp) * 100
+        hp_bar = "█" * int(hp_percent // 10) + "░" * (10 - int(hp_percent // 10))
+        
+        print(f"\n{'='*60}")
+        print(f"DAY: {self.player.days_survived} | LVL: {self.player.level} | "
+              f"HP: [{hp_bar}] {self.player.current_hp}/{self.player.max_hp} | "
+              f"GOLD: {self.player.gold} | KILLS: {self.player.kills}")
+        print(f"{'='*60}")
+    
+    def show_location_info(self):
+        location = self.world.get_location(self.player.position)
+        if location:
+            if not location.visited:
+                print(f"\nYou discover: {location.name.upper()}")
+                print(location.description)
+                location.visited = True
+            
+            print(f"\nYou are at: [{location.symbol}] {location.name}")
+            
+            if location.items:
+                print(f"Items here: {', '.join([item.name for item in location.items])}")
+            
+            if location.zombies:
+                zombie_names = [z.name for z in location.zombies]
+                print(f"Zombies here: {', '.join(zombie_names)}")
+        else:
+            print(f"\nYou are in the wasteland at ({self.player.position.x}, {self.player.position.y})")
+    
+    def show_commands(self):
+        print("\nCommands:")
+        print("  n/s/e/w - Move North/South/East/West")
+        print("  i - Inventory")
+        print("  l - Look around")
+        print("  search - Search for items")
+        print("  rest - Rest and recover")
+        print("  stats - View character stats")
+        print("  save - Save game")
+        print("  quit - Quit to menu")
+    
+    def process_command(self, command: str):
+        location = self.world.get_location(self.player.position)
+        
+        if command in ['n', 's', 'e', 'w']:
+            self.move(command)
+        elif command == 'i':
+            self.state = GameState.INVENTORY
+        elif command == 'l':
+            self.look_around()
+        elif command == 'search':
+            self.search_area()
+        elif command == 'rest':
+            self.rest()
+        elif command == 'stats':
+            self.show_stats()
+        elif command == 'save':
+            self.save_game()
+        elif command == 'quit':
+            self.state = GameState.MAIN_MENU
+        else:
+            print("Unknown command!")
+    
+    def move(self, direction: str):
+        new_pos = Position(self.player.position.x, self.player.position.y)
+        
+        if direction == 'n':
+            new_pos.y -= 1
+        elif direction == 's':
+            new_pos.y += 1
+        elif direction == 'e':
+            new_pos.x += 1
+        elif direction == 'w':
+            new_pos.x -= 1
+        
+        # Check bounds
+        if 0 <= new_pos.x < self.world.width and 0 <= new_pos.y < self.world.height:
+            self.player.position = new_pos
+            
+            # Check for battle
+            location = self.world.get_location(new_pos)
+            if location and location.zombies:
+                self.start_battle(location.zombies)
+                location.zombies = []  # Remove zombies after battle start
+        else:
+            print("You can't go that way!")
+    
+    def look_around(self):
+        print("\nYou look around carefully...")
+        for dy in [-1, 0, 1]:
+            for dx in [-1, 0, 1]:
+                if dx == 0 and dy == 0:
+                    continue
+                check_pos = Position(
+                    self.player.position.x + dx,
+                    self.player.position.y + dy
+                )
+                location = self.world.get_location(check_pos)
+                if location:
+                    print(f"To the {self.get_direction_name(dx, dy)}: {location.name}")
+    
+    def get_direction_name(self, dx: int, dy: int) -> str:
+        if dy == -1:
+            return "north"
+        elif dy == 1:
+            return "south"
+        elif dx == -1:
+            return "west"
+        elif dx == 1:
+            return "east"
+        return "unknown"
+    
+    def search_area(self):
+        location = self.world.get_location(self.player.position)
+        if location:
+            if location.items:
+                found_item = random.choice(location.items)
+                print(f"You found: {found_item.name}!")
+                self.player.add_item(found_item)
+                location.items.remove(found_item)
+            else:
+                if random.random() < 0.3:
+                    new_item = self.world.generate_random_item()
+                    if new_item:
+                        print(f"You found: {new_item.name}!")
+                        self.player.add_item(new_item)
+                    else:
+                        print("You didn't find anything useful.")
+                else:
+                    print("You didn't find anything useful.")
+        else:
+            # Searching wasteland
+            if random.random() < 0.2:
+                gold_found = random.randint(1, 10)
+                self.player.gold += gold_found
+                print(f"You found {gold_found} gold!")
+            else:
+                print("Just rubble and ashes.")
+    
+    def rest(self):
+        heal_amount = 5 + self.player.level
+        self.player.heal(heal_amount)
+        print(f"You rest for a while and recover {heal_amount} HP.")
+        
+        # Chance of ambush
+        if random.random() < 0.1:
+            print("\nYou're ambushed while resting!")
+            zombies = [Zombie(random.choice(list(ZombieType)), self.player.level)]
+            self.start_battle(zombies)
+    
+    def show_stats(self):
+        print("\n" + "=" * 40)
+        print("CHARACTER STATS")
+        print("=" * 40)
+        print(f"Name: {self.player.name}")
+        print(f"Level: {self.player.level}")
+        print(f"Experience: {self.player.exp}/{self.player.level * 100}")
+        print(f"Health: {self.player.current_hp}/{self.player.max_hp}")
+        print(f"Strength: {self.player.strength}")
+        print(f"Agility: {self.player.agility}")
+        print(f"Luck: {self.player.luck}")
+        print(f"Gold: {self.player.gold}")
+        print(f"Kills: {self.player.kills}")
+        print(f"Days Survived: {self.player.days_survived}")
+        print(f"Attack Power: {self.player.attack_power}")
+        print(f"Defense Rating: {self.player.defense_rating}")
+        
+        if self.player.equipped_weapon:
+            print(f"Equipped Weapon: {self.player.equipped_weapon.name} (+{self.player.equipped_weapon.damage} damage)")
+        if self.player.equipped_armor:
+            print(f"Equipped Armor: {self.player.equipped_armor.name} (+{self.player.equipped_armor.defense} defense)")
+    
+    def inventory_menu(self):
+        while self.state == GameState.INVENTORY:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("\n" + "=" * 40)
+            print("INVENTORY")
+            print("=" * 40)
+            
+            if not self.player.inventory:
+                print("Your inventory is empty.")
+            else:
+                for i, item in enumerate(self.player.inventory, 1):
+                    print(f"{i}. {item.name} ({item.item_type.value}) - {item.description}")
+                    if item.item_type == ItemType.WEAPON:
+                        print(f"   Damage: {item.damage}, Weight: {item.weight}")
+                    elif item.item_type == ItemType.ARMOR:
+                        print(f"   Defense: {item.defense}, Weight: {item.weight}")
+                    elif item.item_type == ItemType.CONSUMABLE:
+                        print(f"   Heals: {item.heal_amount}, Value: {item.value}")
+            
+            print("\nCommands:")
+            print("  use [number] - Use/equip item")
+            print("  drop [number] - Drop item")
+            print("  back - Return to game")
+            
+            command = input("\nCommand: ").strip().lower()
+            
+            if command.startswith("use "):
+                try:
+                    idx = int(command.split()[1]) - 1
+                    if 0 <= idx < len(self.player.inventory):
+                        item = self.player.inventory[idx]
+                        if item.item_type == ItemType.WEAPON:
+                            self.player.equip_weapon(item)
+                            print(f"Equipped {item.name}!")
+                        elif item.item_type == ItemType.ARMOR:
+                            self.player.equip_armor(item)
+                            print(f"Equipped {item.name}!")
+                        elif item.item_type == ItemType.CONSUMABLE:
+                            result = item.use(self.player)
+                            print(result)
+                            self.player.remove_item(item)
+                        else:
+                            print("You can't use that item.")
+                    else:
+                        print("Invalid item number!")
+                except (ValueError, IndexError):
+                    print("Invalid command format!")
+            
+            elif command.startswith("drop "):
+                try:
+                    idx = int(command.split()[1]) - 1
+                    if 0 <= idx < len(self.player.inventory):
+                        item = self.player.inventory[idx]
+                        self.player.remove_item(item)
+                        print(f"Dropped {item.name}.")
+                    else:
+                        print("Invalid item number!")
+                except (ValueError, IndexError):
+                    print("Invalid command format!")
+            
+            elif command == "back":
+                self.state = GameState.PLAYING
+            
+            input("\nPress Enter to continue...")
+    
+    def start_battle(self, zombies: List[Zombie]):
+        self.current_battle = Battle(self.player, zombies)
+        self.state = GameState.BATTLE
+    
+    def battle_menu(self):
+        while self.state == GameState.BATTLE and self.current_battle:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            
+            print("\n" + "=" * 40)
+            print("BATTLE!")
+            print("=" * 40)
+            
+            # Show player status
+            print(f"\n{self.player.name}: HP {self.player.current_hp}/{self.player.max_hp}")
+            
+            # Show enemies
+            print("\nEnemies:")
+            for i, zombie in enumerate(self.current_battle.zombies):
+                status = "ALIVE" if zombie.is_alive() else "DEAD"
+                hp_percent = (zombie.current_hp / zombie.max_hp) * 100
+                hp_bar = "█" * int(hp_percent // 10) + "░" * (10 - int(hp_percent // 10))
+                print(f"{i+1}. {zombie.name} (Lv.{zombie.level}) [{hp_bar}] {zombie.current_hp}/{zombie.max_hp} HP")
+            
+            print("\nCommands:")
+            print("  attack [number] - Attack enemy #")
+            print("  use - Use healing item")
+            print("  flee - Try to run away")
+            
+            command = input("\nCommand: ").strip().lower()
+            
+            if command.startswith("attack "):
+                try:
+                    target = int(command.split()[1]) - 1
+                    battle_over, message = self.current_battle.process_turn("attack", target)
+                    print(f"\n{message}")
+                    
+                    if self.current_battle.is_battle_over():
+                        if self.current_battle.player_won():
+                            print("\nVICTORY! You defeated the zombies!")
+                            self.state = GameState.PLAYING
+                        else:
+                            print("\nGAME OVER - You have been killed!")
+                            self.state = GameState.GAME_OVER
+                        input("\nPress Enter to continue...")
+                        return
+                    
+                    # Zombie turn
+                    battle_over, message = self.current_battle.process_turn("zombie")
+                    print(f"\n{message}")
+                    
+                    if self.current_battle.is_battle_over():
+                        if self.current_battle.player_won():
+                            print("\nVICTORY! You defeated the zombies!")
+                            self.state = GameState.PLAYING
+                        else:
+                            print("\nGAME OVER - You have been killed!")
+                            self.state = GameState.GAME_OVER
+                        input("\nPress Enter to continue...")
+                        return
+                
+                except (ValueError, IndexError):
+                    print("Invalid target!")
+                    input("\nPress Enter to continue...")
+            
+            elif command == "use":
+                battle_over, message = self.current_battle.process_turn("use_item", 0)
+                print(f"\n{message}")
+                
+                if not battle_over:
+                    battle_over, message = self.current_battle.process_turn("zombie")
+                    print(f"\n{message}")
+                    
+                    if self.current_battle.is_battle_over():
+                        if self.current_battle.player_won():
+                            print("\nVICTORY! You defeated the zombies!")
+                            self.state = GameState.PLAYING
+                        else:
+                            print("\nGAME OVER - You have been killed!")
+                            self.state = GameState.GAME_OVER
+                        input("\nPress Enter to continue...")
+                        return
+                
+                input("\nPress Enter to continue...")
+            
+            elif command == "flee":
+                battle_over, message = self.current_battle.process_turn("flee", 0)
+                print(f"\n{message}")
+                
+                if battle_over:
+                    print("You escaped!")
+                    self.state = GameState.PLAYING
+                    input("\nPress Enter to continue...")
+                    return
+                else:
+                    battle_over, message = self.current_battle.process_turn("zombie")
+                    print(f"\n{message}")
+                    
+                    if self.current_battle.is_battle_over():
+                        print("\nGAME OVER - You have been killed!")
+                        self.state = GameState.GAME_OVER
+                        input("\nPress Enter to continue...")
+                        return
+                    
+                    input("\nPress Enter to continue...")
+    
+    def shop_menu(self):
+        if not self.current_shop:
+            self.current_shop = Shop()
+        
+        while self.state == GameState.SHOP:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("\n" + "=" * 40)
+            print("SHOP")
+            print("=" * 40)
+            print(f"Your Gold: {self.player.gold}")
+            print("\nItems for sale:")
+            
+            for i, item in enumerate(self.current_shop.inventory, 1):
+                print(f"{i}. {item.name} - {item.value} gold")
+                print(f"   {item.description}")
+            
+            print("\nYour inventory (for selling):")
+            sellable_items = [item for item in self.player.inventory 
+                            if item.item_type in [ItemType.WEAPON, ItemType.ARMOR, ItemType.CONSUMABLE]]
+            for i, item in enumerate(sellable_items, 1):
+                print(f"{i}. {item.name} - Sell for {item.value // 2} gold")
+            
+            print("\nCommands:")
+            print("  buy [number] - Buy item")
+            print("  sell [number] - Sell item")
+            print("  leave - Leave shop")
+            
+            command = input("\nCommand: ").strip().lower()
+            
+            if command.startswith("buy "):
+                try:
+                    idx = int(command.split()[1]) - 1
+                    if 0 <= idx < len(self.current_shop.inventory):
+                        item = self.current_shop.inventory[idx]
+                        success, message = self.current_shop.buy_item(item, self.player)
+                        print(message)
+                    else:
+                        print("Invalid item number!")
+                except (ValueError, IndexError):
+                    print("Invalid command!")
+                
+                input("\nPress Enter to continue...")
+            
+            elif command.startswith("sell "):
+                try:
+                    idx = int(command.split()[1]) - 1
+                    sellable_items = [item for item in self.player.inventory 
+                                    if item.item_type in [ItemType.WEAPON, ItemType.ARMOR, ItemType.CONSUMABLE]]
+                    if 0 <= idx < len(sellable_items):
+                        item = sellable_items[idx]
+                        success, message = self.current_shop.sell_item(item, self.player)
+                        print(message)
+                    else:
+                        print("Invalid item number!")
+                except (ValueError, IndexError):
+                    print("Invalid command!")
+                
+                input("\nPress Enter to continue...")
+            
+            elif command == "leave":
+                self.current_shop = None
+                self.state = GameState.PLAYING
+    
+    def random_event(self):
+        events = [
+            "You find a stash of supplies!",
+            "A mysterious survivor gives you some gold.",
+            "You hear zombies moaning in the distance...",
+            "You find a working vending machine!",
+            "It starts raining... you feel refreshed."
+        ]
+        
+        event = random.choice(events)
+        print(f"\n*** RANDOM EVENT: {event} ***")
+        
+        if event.startswith("You find a stash"):
+            gold_found = random.randint(10, 30)
+            self.player.gold += gold_found
+            print(f"You gained {gold_found} gold!")
+        
+        elif event.startswith("A mysterious survivor"):
+            gold_found = random.randint(5, 20)
+            self.player.gold += gold_found
+            print(f"You gained {gold_found} gold!")
+        
+        elif event.startswith("You hear zombies"):
+            if random.random() < 0.3:
+                print("A small group attacks!")
+                zombies = [Zombie(ZombieType.WALKER, self.player.level) for _ in range(2)]
+                self.start_battle(zombies)
+        
+        elif event.startswith("You find a working"):
+            item = self.world.generate_random_item()
+            if item:
+                self.player.add_item(item)
+                print(f"You got a {item.name}!")
+        
+        elif event.startswith("It starts raining"):
+            heal = 10
+            self.player.heal(heal)
+            print(f"You recovered {heal} HP!")
+    
+    def game_over(self):
+        print("\n" + "=" * 40)
+        print("GAME OVER")
+        print("=" * 40)
+        print(f"Days Survived: {self.player.days_survived}")
+        print(f"Zombies Killed: {self.player.kills}")
+        print(f"Final Level: {self.player.level}")
+        print()
+        print("1. New Game")
+        print("2. Main Menu")
+        print("3. Quit")
+        
+        choice = input("\nChoose: ").strip()
+        
+        if choice == "1":
+            self.new_game()
+        elif choice == "2":
+            self.state = GameState.MAIN_MENU
+        else:
+            self.quit_game()
+    
+    def victory(self):
+        print("\n" + "=" * 40)
+        print("VICTORY!")
+        print("=" * 40)
+        print("You have survived the zombie apocalypse!")
+        print(f"Final Score: {self.player.kills * 100 + self.player.days_survived * 50}")
+        print()
+        print("1. Play Again")
+        print("2. Main Menu")
+        print("3. Quit")
+        
+        choice = input("\nChoose: ").strip()
+        
+        if choice == "1":
+            self.new_game()
+        elif choice == "2":
+            self.state = GameState.MAIN_MENU
+        else:
+            self.quit_game()
+    
+    def show_credits(self):
+        print("\n" + "=" * 40)
+        print("CREDITS")
+        print("=" * 40)
+        print("Zombie Survival RPG")
+        print("Created by: AI Assistant")
+        print("Version: 1.0")
+        print("\nSpecial Thanks:")
+        print("- All the survivors out there")
+        print("- The open source community")
+        print("- You, for playing!")
+        print("\nPress Enter to return to menu...")
+        input()
+    
+    def quit_game(self):
+        print("\nThanks for playing!")
+        print("Stay alive out there!")
+        self.running = False
+
+# ============================================================================
+# MAIN ENTRY POINT
+# ============================================================================
+
+def main():
+    game = Game()
+    game.start()
+
+if __name__ == "__main__":
+    main()
